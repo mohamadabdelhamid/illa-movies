@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">iLLA Movies</string>
+    <string name="error_connect_to_internet">Please connect to the internet and try again</string>
+    <string name="error_internal_server_error">Internal server error, please try again later</string>
+    <string name="error_server_connect_error">Unable to connect to server, please try again later</string>
+    <string name="error_invalid_server_data">Unable to fetch valid data from server, please try again later</string>
+    <string name="error_bad_network_connection">Seems like you have a bad network connection</string>
+    <string name="movies">Movies</string>
+    <string name="favourites">Favourites</string>
+    <string name="no_favourite_movies">You don\'t have any favourite movies.</string>
+    <string name="could_not_get_movies">Sorry, we couldn\'t get movies for you.</string>
+    <string name="please_swipe_to_refresh">Please swipe to refresh.</string>
+</resources>
