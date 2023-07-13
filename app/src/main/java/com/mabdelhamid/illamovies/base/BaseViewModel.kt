@@ -1,12 +1,18 @@
 package com.mabdelhamid.illamovies.base
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.mabdelhamid.illamovies.util.SingleLiveEvent
+import androidx.lifecycle.viewModelScope
+import com.mabdelhamid.illamovies.common.UiAlert
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -17,29 +23,64 @@ import kotlin.coroutines.CoroutineContext
  * @param EVENT the user actions which need to be processed by the viewModel.
  */
 
-abstract class BaseViewModel<STATE, EFFECT, EVENT> : ViewModel(), CoroutineScope {
+abstract class BaseViewModel<EVENT : ViewEvent, STATE : ViewState, EFFECT : ViewEffect> :
+    ViewModel(), CoroutineScope {
 
     protected val job by lazy { Job() }
 
-    private val initialViewState: STATE by lazy { initViewState() }
+    private val initialState: STATE by lazy { initState() }
+    protected abstract fun initState(): STATE
 
-    private val _viewState = MutableLiveData(initialViewState)
-    val viewState: LiveData<STATE> get() = _viewState
+    val state: STATE
+        get() = viewState.value
 
-    private val _viewEffect = SingleLiveEvent<EFFECT>()
-    val viewEffect: LiveData<EFFECT> get() = _viewEffect
+    private val _viewEvent: MutableSharedFlow<EVENT> = MutableSharedFlow()
+    private val viewEvent = _viewEvent.asSharedFlow()
 
-    protected val currentViewState
-        get() = requireNotNull(_viewState.value)
+    private val _viewState: MutableStateFlow<STATE> = MutableStateFlow(initialState)
+    val viewState = _viewState.asStateFlow()
+
+    private val _viewEffect: Channel<EFFECT> = Channel()
+    val viewEffect = _viewEffect.receiveAsFlow()
+
+    private val _viewAlert: Channel<UiAlert> = Channel()
+    val viewAlert = _viewAlert.receiveAsFlow()
+
+    init {
+        subscribeToEvents()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        job.cancel()
+    }
 
     override val coroutineContext: CoroutineContext
         get() = job + Dispatchers.Main
 
-    protected fun updateViewState(state: STATE?) = state?.let { _viewState.value = it }
+    private fun subscribeToEvents() {
+        viewModelScope.launch {
+            viewEvent.collect {
+                handleEvent(it)
+            }
+        }
+    }
 
-    protected fun updateViewEffect(effect: EFFECT?) = effect?.let { _viewEffect.value = it }
+    fun setEvent(event: EVENT) {
+        viewModelScope.launch { _viewEvent.emit(event) }
+    }
 
-    protected abstract fun initViewState(): STATE
+    protected fun setState(reduce: STATE.() -> STATE) {
+        _viewState.value = state.reduce()
+    }
 
-    abstract fun processEvent(event: EVENT)
+    protected fun setEffect(builder: () -> EFFECT) {
+        viewModelScope.launch { _viewEffect.send(builder()) }
+    }
+
+    protected fun setAlert(builder: () -> UiAlert) {
+        viewModelScope.launch { _viewAlert.send(builder()) }
+    }
+
+    protected abstract fun handleEvent(event: EVENT)
 }

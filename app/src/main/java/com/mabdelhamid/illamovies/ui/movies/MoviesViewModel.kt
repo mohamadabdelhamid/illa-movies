@@ -2,11 +2,16 @@ package com.mabdelhamid.illamovies.ui.movies
 
 import androidx.lifecycle.viewModelScope
 import com.mabdelhamid.illamovies.base.BaseViewModel
+import com.mabdelhamid.illamovies.common.UiAlert
+import com.mabdelhamid.illamovies.common.UiAlert.Type.ERROR
+import com.mabdelhamid.illamovies.common.UiText
 import com.mabdelhamid.illamovies.data.model.Movie
 import com.mabdelhamid.illamovies.data.onError
 import com.mabdelhamid.illamovies.data.onLoading
 import com.mabdelhamid.illamovies.data.onSuccess
 import com.mabdelhamid.illamovies.repository.MoviesRepository
+import com.mabdelhamid.illamovies.ui.movies.MoviesContract.*
+import com.mabdelhamid.illamovies.ui.movies.MoviesContract.MoviesViewEvent.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -19,28 +24,26 @@ import javax.inject.Inject
  */
 
 @HiltViewModel
-class MoviesViewModel
-@Inject
-constructor(
+class MoviesViewModel @Inject constructor(
     private val moviesRepository: MoviesRepository
-) : BaseViewModel<MoviesViewState, MoviesViewEffect, MoviesViewEvent>() {
+) : BaseViewModel<MoviesViewEvent, MoviesViewState, MoviesViewEffect>() {
 
     private var currentMovies = mutableListOf<Movie>()
     private var currentPage = 1
     private var totalResults = 0
     private var canPaginate = false
 
-    init {
-        getMovies()
+    override fun initState(): MoviesViewState = MoviesViewState()
+
+    override fun handleEvent(event: MoviesViewEvent) = when (event) {
+        is GetMovies -> getMovies()
+        is GetMoreMovies -> getMoreMovies()
+        is FavouriteMovieClicked -> onFavouriteMovieClicked(event)
+        is UnFavouriteMovieClicked -> onUnFavouriteMovieClicked(event)
     }
 
-    override fun initViewState(): MoviesViewState = MoviesViewState()
-
-    override fun processEvent(event: MoviesViewEvent) = when (event) {
-        is MoviesViewEvent.GetMovies -> getMovies()
-        is MoviesViewEvent.GetMoreMovies -> getMoreMovies()
-        is MoviesViewEvent.FavouriteMovieClicked -> onFavouriteMovieClicked(event)
-        is MoviesViewEvent.UnFavouriteMovieClicked -> onUnFavouriteMovieClicked(event)
+    init {
+        getMovies()
     }
 
     private fun getMovies() {
@@ -51,7 +54,7 @@ constructor(
                 .collect { result ->
                     result
                         .onLoading {
-                            updateViewState(currentViewState.copy(isLoading = true))
+                            setState { copy(isLoading = true) }
                         }
                         .onSuccess {
                             val results = it?.results
@@ -59,16 +62,16 @@ constructor(
                             currentMovies = results?.toMutableList() ?: mutableListOf()
                             checkIfCanPaginateAgain()
                             getFavouriteMovies()
-                            updateViewState(currentViewState.copy(isLoading = false))
+                            setState { copy(isLoading = false) }
                         }
                         .onError {
-                            updateViewState(
-                                currentViewState.copy(
+                            setState {
+                                copy(
                                     isLoading = false,
                                     isEmptyState = currentMovies.isEmpty()
                                 )
-                            )
-                            updateViewEffect(MoviesViewEffect.ShowError(message = it))
+                            }
+                            setAlert { UiAlert(type = ERROR, text = UiText.String(it)) }
                         }
                 }
         }
@@ -81,7 +84,7 @@ constructor(
                 .collect { result ->
                     result
                         .onLoading {
-                            updateViewState(currentViewState.copy(isLoadingMore = true))
+                            setState { copy(isLoadingMore = true) }
                         }
                         .onSuccess {
                             currentMovies.addAll(it?.results ?: emptyList())
@@ -89,8 +92,8 @@ constructor(
                             getFavouriteMovies()
                         }
                         .onError {
-                            updateViewState(currentViewState.copy(isLoadingMore = false))
-                            updateViewEffect(MoviesViewEffect.ShowError(message = it))
+                            setState { copy(isLoadingMore = false) }
+                            setAlert { UiAlert(type = ERROR, text = UiText.String(it)) }
                         }
                 }
         }
@@ -103,7 +106,7 @@ constructor(
         } else false
     }
 
-    private fun onFavouriteMovieClicked(event: MoviesViewEvent.FavouriteMovieClicked) {
+    private fun onFavouriteMovieClicked(event: FavouriteMovieClicked) {
         viewModelScope.launch {
             moviesRepository
                 .addMovieToFavourites(movie = event.movie.apply { isFavourite = true })
@@ -111,7 +114,7 @@ constructor(
         }
     }
 
-    private fun onUnFavouriteMovieClicked(event: MoviesViewEvent.UnFavouriteMovieClicked) {
+    private fun onUnFavouriteMovieClicked(event: UnFavouriteMovieClicked) {
         viewModelScope.launch {
             moviesRepository
                 .deleteMovieFromFavourites(id = event.movie.id)
@@ -132,14 +135,14 @@ constructor(
                                 favouriteMovies.find { it.id == remoteMovie.id } != null
                         }
                     }
-                    updateViewState(
-                        currentViewState.copy(
+                    setState {
+                        copy(
                             isLoading = false,
                             isLoadingMore = false,
                             movies = currentMovies,
                             isEmptyState = currentMovies.isEmpty()
                         )
-                    )
+                    }
                 }
         }
     }

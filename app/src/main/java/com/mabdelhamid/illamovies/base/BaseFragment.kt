@@ -4,8 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
+import com.mabdelhamid.illamovies.common.UiAlert
 
 /**
  * A base class to be inherited by all fragments in the app.
@@ -40,6 +42,11 @@ abstract class BaseFragment<BINDING : ViewBinding>(
         initUi()
         initObservers()
     }
+
+    protected fun showAlert(alert: UiAlert) =
+        Toast
+            .makeText(requireContext(), alert.text.asString(requireContext()), Toast.LENGTH_SHORT)
+            .show()
 
     abstract fun initUi()
 

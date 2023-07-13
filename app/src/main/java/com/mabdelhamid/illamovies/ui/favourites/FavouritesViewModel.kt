@@ -3,6 +3,8 @@ package com.mabdelhamid.illamovies.ui.favourites
 import androidx.lifecycle.viewModelScope
 import com.mabdelhamid.illamovies.base.BaseViewModel
 import com.mabdelhamid.illamovies.repository.MoviesRepository
+import com.mabdelhamid.illamovies.ui.favourites.FavouritesContract.*
+import com.mabdelhamid.illamovies.ui.favourites.FavouritesContract.FavouritesViewEvent.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -15,38 +17,36 @@ import javax.inject.Inject
  */
 
 @HiltViewModel
-class FavouritesViewModel
-@Inject
-constructor(
+class FavouritesViewModel @Inject constructor(
     private val moviesRepository: MoviesRepository
-) : BaseViewModel<FavouritesViewState, Any, FavouritesViewEvent>() {
+) : BaseViewModel<FavouritesViewEvent, FavouritesViewState, FavouritesViewEffect>() {
 
     init {
         getFavouriteMovies()
     }
 
-    override fun initViewState(): FavouritesViewState = FavouritesViewState()
+    override fun initState(): FavouritesViewState = FavouritesViewState()
 
-    override fun processEvent(event: FavouritesViewEvent) = when (event) {
-        is FavouritesViewEvent.UnFavouriteMovieClicked -> onUnFavouriteMovieClicked(event)
+    override fun handleEvent(event: FavouritesViewEvent) = when (event) {
+        is UnFavouriteMovieClicked -> onUnFavouriteMovieClicked(event)
     }
 
     private fun getFavouriteMovies() {
         viewModelScope.launch {
             moviesRepository
                 .getFavouriteMovies()
-                .collect { movies ->
-                    updateViewState(
-                        currentViewState.copy(
-                            movies = movies,
-                            isEmptyState = movies.isEmpty()
+                .collect {
+                    setState {
+                        copy(
+                            movies = it,
+                            isEmptyState = it.isEmpty()
                         )
-                    )
+                    }
                 }
         }
     }
 
-    private fun onUnFavouriteMovieClicked(event: FavouritesViewEvent.UnFavouriteMovieClicked) {
+    private fun onUnFavouriteMovieClicked(event: UnFavouriteMovieClicked) {
         viewModelScope.launch {
             moviesRepository.deleteMovieFromFavourites(id = event.movie.id).collect()
         }
