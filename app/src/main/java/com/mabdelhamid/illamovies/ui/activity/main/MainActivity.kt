@@ -8,6 +8,8 @@ import androidx.navigation.ui.setupWithNavController
 import com.mabdelhamid.illamovies.R
 import com.mabdelhamid.illamovies.base.BaseActivity
 import com.mabdelhamid.illamovies.databinding.ActivityMainBinding
+import com.mabdelhamid.illamovies.ui.activity.main.MainContract.MainViewState
+import com.mabdelhamid.illamovies.util.extension.collectOnLifecycleStarted
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -31,10 +33,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
     override fun initUi() = Unit
 
     override fun initObservers() {
-        viewModel.viewState.observe(this) { state ->
-            with(binding.bottomNavigation.getOrCreateBadge(R.id.favouritesFragment)) {
-                isVisible = !state.isEmptyFavourites
-                number = state.favouritesCount
+        with(viewModel) {
+            viewState.collectOnLifecycleStarted(this@MainActivity) { state ->
+                displayFavouritesBadge(state)
             }
         }
     }
@@ -45,12 +46,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>(ActivityMainBinding::infl
         navController = navHostFragment.navController
     }
 
-    private fun setupBottomNavWithNavController() {
+    private fun setupBottomNavWithNavController() =
         with(binding.bottomNavigation) {
             setupWithNavController(navController)
             setOnItemReselectedListener {
                 // do nothing here, it will prevent recreating same fragment
             }
         }
-    }
+
+    private fun displayFavouritesBadge(state: MainViewState) =
+        with(binding.bottomNavigation.getOrCreateBadge(R.id.favouritesFragment)) {
+            isVisible = !state.isEmptyFavourites
+            number = state.favouritesCount
+        }
 }

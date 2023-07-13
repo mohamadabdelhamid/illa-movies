@@ -6,9 +6,14 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mabdelhamid.illamovies.base.BaseFragment
+import com.mabdelhamid.illamovies.common.UiAlert
+import com.mabdelhamid.illamovies.data.model.Movie
 import com.mabdelhamid.illamovies.databinding.FragmentMoviesBinding
 import com.mabdelhamid.illamovies.ui.adapter.MoviesAdapter
+import com.mabdelhamid.illamovies.ui.movies.MoviesContract.*
+import com.mabdelhamid.illamovies.ui.movies.MoviesContract.MoviesViewEvent.*
 import com.mabdelhamid.illamovies.util.PaginationScrollListener
+import com.mabdelhamid.illamovies.util.extension.collectOnLifecycleStarted
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -23,63 +28,68 @@ class MoviesFragment : BaseFragment<FragmentMoviesBinding>(FragmentMoviesBinding
     private val viewModel by viewModels<MoviesViewModel>()
     private val moviesAdapter by lazy {
         MoviesAdapter(
-            onFavouriteClicked = {
-                viewModel.processEvent(MoviesViewEvent.FavouriteMovieClicked(movie = it))
-            },
-            onUnFavouriteClicked = {
-                viewModel.processEvent(MoviesViewEvent.UnFavouriteMovieClicked(movie = it))
-            }
+            onFavouriteClicked = { onFavouriteClicked(it) },
+            onUnFavouriteClicked = { onUnFavouriteClicked(it) }
         )
     }
 
     override fun initUi() {
-        with(binding) {
-            swipeRefresh.setOnRefreshListener { getMovies() }
-            with(rvMovies) {
-                adapter = moviesAdapter
-                val layoutManager =
-                    LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-                addOnScrollListener(object : PaginationScrollListener(layoutManager) {
-                    override fun isLoading(): Boolean =
-                        viewModel.viewState.value?.isLoadingMore == true
-
-                    override fun onLoadMore() =
-                        viewModel.processEvent(MoviesViewEvent.GetMoreMovies)
-                })
-                this.layoutManager = layoutManager
-            }
-        }
+        initSwipeRefresh()
+        initMoviesRecycler()
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     override fun initObservers() {
         with(viewModel) {
-            viewState.observe(viewLifecycleOwner) { state ->
-                with(binding) {
-                    if (state.isLoading) swipeRefresh.isRefreshing = true
-                    else if (swipeRefresh.isRefreshing) swipeRefresh.isRefreshing = false
-                    linearProgressbar.isVisible = state.isLoadingMore
-                    wEmptyState.isVisible = state.isEmptyState
-                    moviesAdapter.apply {
-                        submitList(state.movies)
-                        notifyDataSetChanged()
-                    }
-                }
+            viewState.collectOnLifecycleStarted(viewLifecycleOwner) { state ->
+                toggleLoading(state)
+                displayMovies(state)
+                toggleEmptyState(state)
             }
 
-            viewModel.viewEffect.observe(viewLifecycleOwner) { effect ->
-                when (effect) {
-                    is MoviesViewEffect.ShowError -> showError(effect.message)
-                }
+            viewAlert.collectOnLifecycleStarted(viewLifecycleOwner) { alert ->
+                showAlert(alert)
             }
         }
+
     }
 
-    private fun getMovies() = viewModel.processEvent(MoviesViewEvent.GetMovies)
+    private fun initSwipeRefresh() = with(binding.swipeRefresh) {
+        setOnRefreshListener { getMovies() }
+    }
 
-    private fun showError(message: String?) = Toast.makeText(
-        requireContext(),
-        message,
-        Toast.LENGTH_SHORT
-    ).show()
+
+    private fun initMoviesRecycler() = with(binding.rvMovies) {
+        adapter = moviesAdapter
+        val layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        addOnScrollListener(object : PaginationScrollListener(layoutManager) {
+            override fun isLoading(): Boolean = viewModel.state.isLoadingMore
+
+            override fun onLoadMore() =
+                viewModel.setEvent(GetMoreMovies)
+        })
+        this.layoutManager = layoutManager
+    }
+
+    private fun onFavouriteClicked(movie: Movie) =
+        viewModel.setEvent(FavouriteMovieClicked(movie = movie))
+
+    private fun onUnFavouriteClicked(movie: Movie) =
+        viewModel.setEvent(UnFavouriteMovieClicked(movie = movie))
+
+    private fun getMovies() = viewModel.setEvent(GetMovies)
+
+    private fun toggleLoading(state: MoviesViewState) = with(binding) {
+        swipeRefresh.isRefreshing = state.isLoading
+        linearProgressbar.isVisible = state.isLoadingMore
+    }
+
+    private fun displayMovies(state: MoviesViewState) = moviesAdapter.apply {
+        submitList(state.movies)
+        notifyDataSetChanged()
+    }
+
+    private fun toggleEmptyState(state: MoviesViewState) = with(binding) {
+        wEmptyState.isVisible = state.isEmptyState
+    }
 }
