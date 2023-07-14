@@ -9,7 +9,8 @@ import com.mabdelhamid.illamovies.data.model.Movie
 import com.mabdelhamid.illamovies.data.onError
 import com.mabdelhamid.illamovies.data.onLoading
 import com.mabdelhamid.illamovies.data.onSuccess
-import com.mabdelhamid.illamovies.repository.MoviesRepository
+import com.mabdelhamid.illamovies.data.repository.MoviesRepositoryImpl
+import com.mabdelhamid.illamovies.domain.repository.MoviesRepository
 import com.mabdelhamid.illamovies.ui.movies.MoviesContract.*
 import com.mabdelhamid.illamovies.ui.movies.MoviesContract.MoviesViewEvent.*
 import dagger.hilt.android.lifecycle.HiltViewModel

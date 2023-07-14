@@ -32,5 +32,5 @@ object RoomModule {
 
     @Provides
     @Singleton
-    fun provideMovieDAO(database: MoviesDatabase): MoviesDao = database.moviesDao()
+    fun provideMoviesDao(database: MoviesDatabase): MoviesDao = database.moviesDao()
 }
