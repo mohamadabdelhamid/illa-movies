@@ -15,7 +15,7 @@ class MoviesContract {
 
         data class FavouriteMovieClicked(val movie: Movie) : MoviesViewEvent()
 
-        data class UnFavouriteMovieClicked(val movie: Movie) : MoviesViewEvent()
+        data class UnFavouriteMovieClicked(val movieId: Int) : MoviesViewEvent()
     }
 
     data class MoviesViewState(

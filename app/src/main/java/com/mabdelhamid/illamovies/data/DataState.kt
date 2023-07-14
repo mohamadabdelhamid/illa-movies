@@ -16,7 +16,7 @@ sealed class DataState<out T>(
 
     class Error<T>(message: String? = null) : DataState<T>(message = message)
 
-    class Loading<T>(message: String? = null) : DataState<T>(message = message)
+    class Loading<T> : DataState<T>()
 }
 
 inline fun <T : Any> DataState<T>.onSuccess(action: (T?) -> Unit): DataState<T> {

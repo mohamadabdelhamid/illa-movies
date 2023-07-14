@@ -87,7 +87,7 @@
                     app:srcCompat="@drawable/ic_star" />
 
                 <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/tvRate"
+                    android:id="@+id/tvRating"
                     style="@style/App.Type.Regular"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

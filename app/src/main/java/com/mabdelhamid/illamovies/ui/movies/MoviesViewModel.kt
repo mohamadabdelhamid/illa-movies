@@ -9,7 +9,7 @@ import com.mabdelhamid.illamovies.data.onError
 import com.mabdelhamid.illamovies.data.onLoading
 import com.mabdelhamid.illamovies.data.onSuccess
 import com.mabdelhamid.illamovies.domain.entity.Movie
-import com.mabdelhamid.illamovies.domain.repository.MoviesRepository
+import com.mabdelhamid.illamovies.domain.usecase.movie.MovieUseCases
 import com.mabdelhamid.illamovies.ui.movies.MoviesContract.MoviesViewEffect
 import com.mabdelhamid.illamovies.ui.movies.MoviesContract.MoviesViewEvent
 import com.mabdelhamid.illamovies.ui.movies.MoviesContract.MoviesViewEvent.FavouriteMovieClicked
@@ -22,20 +22,13 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * Holds the business logic, UI state of [MoviesFragment], and consumes the events came from that screen.
- *
- * @property moviesRepository instance of [MoviesRepository] to interact with the datasource.
- */
-
 @HiltViewModel
 class MoviesViewModel @Inject constructor(
-    private val moviesRepository: MoviesRepository
+    private val movieUseCases: MovieUseCases
 ) : BaseViewModel<MoviesViewEvent, MoviesViewState, MoviesViewEffect>() {
 
-    private var currentMovies = mutableListOf<Movie>()
     private var currentPage = 1
-    private var totalResults = 0
+    private var totalCount = 0
     private var canPaginate = false
 
     override fun initState(): MoviesViewState = MoviesViewState()
@@ -43,8 +36,8 @@ class MoviesViewModel @Inject constructor(
     override fun handleEvent(event: MoviesViewEvent) = when (event) {
         is GetMovies -> getMovies()
         is GetMoreMovies -> getMoreMovies()
-        is FavouriteMovieClicked -> onFavouriteMovieClicked(event)
-        is UnFavouriteMovieClicked -> onUnFavouriteMovieClicked(event)
+        is FavouriteMovieClicked -> onFavouriteMovieClicked(event.movie)
+        is UnFavouriteMovieClicked -> onUnFavouriteMovieClicked(event.movieId)
     }
 
     init {
@@ -54,28 +47,25 @@ class MoviesViewModel @Inject constructor(
     private fun getMovies() {
         currentPage = 1
         viewModelScope.launch {
-            moviesRepository
-                .getRemoteMovies(page = currentPage)
+            movieUseCases
+                .getAllMoviesUseCase(page = currentPage)
                 .collect { result ->
                     result
                         .onLoading {
                             setState { copy(isLoading = true) }
                         }
                         .onSuccess {
-                            val results = it?.results
-                            totalResults = it?.totalPages ?: 0
-                            currentMovies = results?.toMutableList() ?: mutableListOf()
-                            checkIfCanPaginateAgain()
-                            getFavouriteMovies()
-                            setState { copy(isLoading = false) }
-                        }
-                        .onError {
+                            totalCount = it?.totalResults ?: 0
                             setState {
                                 copy(
                                     isLoading = false,
-                                    isEmptyState = currentMovies.isEmpty()
+                                    movies = it?.results ?: emptyList()
                                 )
                             }
+                            checkIfCanPaginate()
+                        }
+                        .onError {
+                            setState { copy(isLoading = false) }
                             setAlert { UiAlert(type = ERROR, text = UiText.String(it)) }
                         }
                 }
@@ -84,17 +74,21 @@ class MoviesViewModel @Inject constructor(
 
     private fun getMoreMovies() {
         viewModelScope.launch {
-            moviesRepository
-                .getRemoteMovies(page = currentPage)
+            movieUseCases
+                .getAllMoviesUseCase(page = currentPage)
                 .collect { result ->
                     result
                         .onLoading {
                             setState { copy(isLoadingMore = true) }
                         }
                         .onSuccess {
-                            currentMovies.addAll(it?.results ?: emptyList())
-                            checkIfCanPaginateAgain()
-                            getFavouriteMovies()
+                            setState {
+                                copy(
+                                    isLoadingMore = false,
+                                    movies = movies + (it?.results ?: emptyList())
+                                )
+                            }
+                            checkIfCanPaginate()
                         }
                         .onError {
                             setState { copy(isLoadingMore = false) }
@@ -104,51 +98,51 @@ class MoviesViewModel @Inject constructor(
         }
     }
 
-    private fun checkIfCanPaginateAgain() {
-        canPaginate = if (currentMovies.size < totalResults) {
+    private fun checkIfCanPaginate() {
+        canPaginate = if (state.movies.size < totalCount) {
             currentPage++
             true
         } else false
     }
 
-    private fun onFavouriteMovieClicked(event: FavouriteMovieClicked) {
+    private fun onFavouriteMovieClicked(movie: Movie) {
         viewModelScope.launch {
-            moviesRepository
-                .addMovieToFavourites(movie = event.movie.copy(isFavourite = true))
+            movieUseCases
+                .addMovieToFavouritesUseCase(movie = movie)
                 .collect()
         }
     }
 
-    private fun onUnFavouriteMovieClicked(event: UnFavouriteMovieClicked) {
+    private fun onUnFavouriteMovieClicked(movieId: Int) {
         viewModelScope.launch {
-            moviesRepository
-                .deleteMovieFromFavourites(id = event.movie.id)
+            movieUseCases
+                .deleteMovieFromFavouritesUseCase(movieId = movieId)
                 .collect()
         }
     }
 
-    private fun getFavouriteMovies() {
-        viewModelScope.launch {
-            moviesRepository
-                .getFavouriteMovies()
-                .collect { favouriteMovies ->
-//                    if (favouriteMovies.isEmpty()) {
-//                        currentMovies.forEach { remoteMovie -> remoteMovie.isFavourite = false }
-//                    } else {
-//                        currentMovies.forEach { remoteMovie ->
-//                            remoteMovie.isFavourite =
-//                                favouriteMovies.find { it.id == remoteMovie.id } != null
-//                        }
+//    private fun getFavouriteMovies() {
+//        viewModelScope.launch {
+//            moviesRepository
+//                .getFavouriteMovies()
+//                .collect { favouriteMovies ->
+////                    if (favouriteMovies.isEmpty()) {
+////                        currentMovies.forEach { remoteMovie -> remoteMovie.isFavourite = false }
+////                    } else {
+////                        currentMovies.forEach { remoteMovie ->
+////                            remoteMovie.isFavourite =
+////                                favouriteMovies.find { it.id == remoteMovie.id } != null
+////                        }
+////                    }
+//                    setState {
+//                        copy(
+//                            isLoading = false,
+//                            isLoadingMore = false,
+//                            movies = currentMovies,
+//                            isEmptyState = currentMovies.isEmpty()
+//                        )
 //                    }
-                    setState {
-                        copy(
-                            isLoading = false,
-                            isLoadingMore = false,
-                            movies = currentMovies,
-                            isEmptyState = currentMovies.isEmpty()
-                        )
-                    }
-                }
-        }
-    }
+//                }
+//        }
+//    }
 }

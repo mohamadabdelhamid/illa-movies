@@ -3,6 +3,7 @@ package com.mabdelhamid.illamovies.ui.favourites
 import androidx.lifecycle.viewModelScope
 import com.mabdelhamid.illamovies.base.BaseViewModel
 import com.mabdelhamid.illamovies.domain.repository.MoviesRepository
+import com.mabdelhamid.illamovies.domain.usecase.movie.MovieUseCases
 import com.mabdelhamid.illamovies.ui.favourites.FavouritesContract.*
 import com.mabdelhamid.illamovies.ui.favourites.FavouritesContract.FavouritesViewEvent.*
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,15 +11,9 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * Holds the business logic, UI state of [FavouritesFragment], and consumes the events came from that screen.
- *
- * @property moviesRepository instance of [MoviesRepository] to interact with the datasource.
- */
-
 @HiltViewModel
 class FavouritesViewModel @Inject constructor(
-    private val moviesRepository: MoviesRepository
+    private val movieUseCases: MovieUseCases
 ) : BaseViewModel<FavouritesViewEvent, FavouritesViewState, FavouritesViewEffect>() {
 
     init {
@@ -28,13 +23,13 @@ class FavouritesViewModel @Inject constructor(
     override fun initState(): FavouritesViewState = FavouritesViewState()
 
     override fun handleEvent(event: FavouritesViewEvent) = when (event) {
-        is UnFavouriteMovieClicked -> onUnFavouriteMovieClicked(event)
+        is UnFavouriteMovieClicked -> onUnFavouriteMovieClicked(event.movieId)
     }
 
     private fun getFavouriteMovies() {
         viewModelScope.launch {
-            moviesRepository
-                .getFavouriteMovies()
+            movieUseCases
+                .getFavouriteMoviesUseCase()
                 .collect {
                     setState {
                         copy(
@@ -46,9 +41,11 @@ class FavouritesViewModel @Inject constructor(
         }
     }
 
-    private fun onUnFavouriteMovieClicked(event: UnFavouriteMovieClicked) {
+    private fun onUnFavouriteMovieClicked(movieId: Int) {
         viewModelScope.launch {
-            moviesRepository.deleteMovieFromFavourites(id = event.movie.id).collect()
+            movieUseCases
+                .deleteMovieFromFavouritesUseCase(movieId = movieId)
+                .collect()
         }
     }
 }

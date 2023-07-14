@@ -7,11 +7,11 @@ import kotlinx.coroutines.flow.Flow
 
 interface MoviesRepository {
 
-    suspend fun getRemoteMovies(page: Int): Flow<DataState<ResponseWrapper<Movie>>>
+    suspend fun getAllMovies(page: Int): Flow<DataState<ResponseWrapper<Movie>>>
 
     fun getFavouriteMovies(): Flow<List<Movie>>
 
     suspend fun addMovieToFavourites(movie: Movie): Flow<DataState<Long>>
 
-    suspend fun deleteMovieFromFavourites(id: Int?): Flow<DataState<Int>>
+    suspend fun deleteMovieFromFavourites(movieId: Int): Flow<DataState<Int>>
 }

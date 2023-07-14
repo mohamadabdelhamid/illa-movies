@@ -6,7 +6,6 @@ import com.mabdelhamid.illamovies.data.DataState
 import com.mabdelhamid.illamovies.data.local.MoviesDao
 import com.mabdelhamid.illamovies.data.mapper.MovieMapper
 import com.mabdelhamid.illamovies.data.model.ResponseWrapper
-import com.mabdelhamid.illamovies.data.model.MovieDto
 import com.mabdelhamid.illamovies.data.remote.ApiService
 import com.mabdelhamid.illamovies.domain.entity.Movie
 import com.mabdelhamid.illamovies.domain.repository.MoviesRepository
@@ -29,7 +28,7 @@ class MoviesRepositoryImpl @Inject constructor(
     private val movieMapper: MovieMapper
 ) : BaseRepository(context), MoviesRepository {
 
-    override suspend fun getRemoteMovies(page: Int): Flow<DataState<ResponseWrapper<Movie>>> =
+    override suspend fun getAllMovies(page: Int): Flow<DataState<ResponseWrapper<Movie>>> =
         flow {
             emit(DataState.Loading())
             val response = apiService.getAllMovies(page = page)
@@ -55,10 +54,10 @@ class MoviesRepositoryImpl @Inject constructor(
             emit(DataState.Error(message = e.message))
         }
 
-    override suspend fun deleteMovieFromFavourites(id: Int?): Flow<DataState<Int>> =
+    override suspend fun deleteMovieFromFavourites(movieId: Int): Flow<DataState<Int>> =
         flow {
             emit(DataState.Loading())
-            emit(DataState.Success(moviesDao.deleteMovieById(id = id ?: -1)))
+            emit(DataState.Success(moviesDao.deleteMovieById(id = movieId)))
         }.catch { e ->
             emit(DataState.Error(message = e.message))
         }

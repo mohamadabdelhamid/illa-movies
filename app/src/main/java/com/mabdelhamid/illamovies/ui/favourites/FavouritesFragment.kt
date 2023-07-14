@@ -46,7 +46,7 @@ class FavouritesFragment :
     }
 
     private fun onUnFavouriteClicked(movie: Movie) =
-        viewModel.setEvent(UnFavouriteMovieClicked(movie = movie))
+        viewModel.setEvent(UnFavouriteMovieClicked(movieId = movie.id))
 
     private fun displayMovies(state: FavouritesViewState) =
         moviesAdapter.submitList(state.movies)

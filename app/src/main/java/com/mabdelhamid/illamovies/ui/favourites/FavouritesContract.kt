@@ -10,7 +10,7 @@ class FavouritesContract {
 
     sealed class FavouritesViewEvent : ViewEvent {
         data class UnFavouriteMovieClicked(
-            val movie: Movie
+            val movieId: Int
         ) : FavouritesViewEvent()
 
     }

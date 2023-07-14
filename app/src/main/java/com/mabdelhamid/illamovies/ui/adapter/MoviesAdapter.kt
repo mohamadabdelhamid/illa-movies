@@ -15,7 +15,7 @@ import com.mabdelhamid.illamovies.domain.entity.Movie
  * Class to adapt the movies list to be displayed in a recyclerview.
  *
  * @property onFavouriteClicked function to be called with user toggle favourite item
- * @property onUnFavouriteClicked function to be called with user toggle unfavourite item
+ * @property onUnFavouriteClicked function to be called with user toggle unFavourite item
  */
 
 class MoviesAdapter(
@@ -32,32 +32,42 @@ class MoviesAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) =
         holder.bind(getItem(position))
 
-    inner class ViewHolder(private val binding: ItemMovieBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(
+        private val binding: ItemMovieBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: Movie) {
-            with(binding) {
-                with(ivImage) {
-                    Glide.with(this)
-                        .load("https://image.tmdb.org/t/p/w500/${item.posterPath}")
-                        .into(this)
-                }
-                tvTitle.text = item.title
-                tvOverview.text = item.overview
-                tvRate.text = item.voteAverage.toString()
-                with(ivFavourite) {
-                    setImageResource(
-                        if (item.isFavourite) R.drawable.ic_favorite
-                        else R.drawable.ic_favorite_border
-                    )
-                    setOnClickListener {
-                        if (!item.isFavourite) {
-                            onFavouriteClicked?.invoke(item)
-                        } else {
-                            onUnFavouriteClicked?.invoke(item)
-                        }
-                    }
-                }
+            displayPoster(item)
+            displayTitle(item)
+            displayOverview(item)
+            displayRating(item)
+            displayFavouriteIcon(item)
+        }
+
+        private fun displayPoster(item: Movie) = with(binding.ivImage) {
+            Glide
+                .with(this)
+                .load(item.posterUrl)
+                .into(this)
+        }
+
+        private fun displayTitle(item: Movie) = with(binding.tvTitle) {
+            text = item.title
+        }
+
+        private fun displayOverview(item: Movie) = with(binding.tvOverview) {
+            text = item.overview
+        }
+
+        private fun displayRating(item: Movie) = with(binding.tvRating) {
+            text = item.voteAverage.toString()
+        }
+
+        private fun displayFavouriteIcon(item: Movie) = with(binding.ivFavourite) {
+            setImageResource(item.favouriteIconRes)
+            setOnClickListener {
+                if (!item.isFavourite) onFavouriteClicked?.invoke(item)
+                else onUnFavouriteClicked?.invoke(item)
             }
         }
     }

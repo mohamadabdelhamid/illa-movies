@@ -73,7 +73,7 @@ class MoviesFragment : BaseFragment<FragmentMoviesBinding>(FragmentMoviesBinding
         viewModel.setEvent(FavouriteMovieClicked(movie = movie))
 
     private fun onUnFavouriteClicked(movie: Movie) =
-        viewModel.setEvent(UnFavouriteMovieClicked(movie = movie))
+        viewModel.setEvent(UnFavouriteMovieClicked(movieId = movie.id))
 
     private fun getMovies() = viewModel.setEvent(GetMovies)
 
