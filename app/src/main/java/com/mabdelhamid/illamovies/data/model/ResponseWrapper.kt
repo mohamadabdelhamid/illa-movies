@@ -12,7 +12,7 @@ import com.google.gson.annotations.SerializedName
  * @property totalPages total count of pages of items that are available in the remote server
  */
 
-data class BaseResponse<T>(
+data class ResponseWrapper<T>(
     @SerializedName("page") val page: Int? = null,
     @SerializedName("results") var results: List<T>? = null,
     @SerializedName("total_results") val totalResults: Int? = null,

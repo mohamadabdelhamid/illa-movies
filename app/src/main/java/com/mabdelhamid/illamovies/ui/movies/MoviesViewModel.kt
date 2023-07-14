@@ -5,14 +5,18 @@ import com.mabdelhamid.illamovies.base.BaseViewModel
 import com.mabdelhamid.illamovies.common.UiAlert
 import com.mabdelhamid.illamovies.common.UiAlert.Type.ERROR
 import com.mabdelhamid.illamovies.common.UiText
-import com.mabdelhamid.illamovies.data.model.Movie
 import com.mabdelhamid.illamovies.data.onError
 import com.mabdelhamid.illamovies.data.onLoading
 import com.mabdelhamid.illamovies.data.onSuccess
-import com.mabdelhamid.illamovies.data.repository.MoviesRepositoryImpl
+import com.mabdelhamid.illamovies.domain.entity.Movie
 import com.mabdelhamid.illamovies.domain.repository.MoviesRepository
-import com.mabdelhamid.illamovies.ui.movies.MoviesContract.*
-import com.mabdelhamid.illamovies.ui.movies.MoviesContract.MoviesViewEvent.*
+import com.mabdelhamid.illamovies.ui.movies.MoviesContract.MoviesViewEffect
+import com.mabdelhamid.illamovies.ui.movies.MoviesContract.MoviesViewEvent
+import com.mabdelhamid.illamovies.ui.movies.MoviesContract.MoviesViewEvent.FavouriteMovieClicked
+import com.mabdelhamid.illamovies.ui.movies.MoviesContract.MoviesViewEvent.GetMoreMovies
+import com.mabdelhamid.illamovies.ui.movies.MoviesContract.MoviesViewEvent.GetMovies
+import com.mabdelhamid.illamovies.ui.movies.MoviesContract.MoviesViewEvent.UnFavouriteMovieClicked
+import com.mabdelhamid.illamovies.ui.movies.MoviesContract.MoviesViewState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -110,7 +114,7 @@ class MoviesViewModel @Inject constructor(
     private fun onFavouriteMovieClicked(event: FavouriteMovieClicked) {
         viewModelScope.launch {
             moviesRepository
-                .addMovieToFavourites(movie = event.movie.apply { isFavourite = true })
+                .addMovieToFavourites(movie = event.movie.copy(isFavourite = true))
                 .collect()
         }
     }
@@ -128,14 +132,14 @@ class MoviesViewModel @Inject constructor(
             moviesRepository
                 .getFavouriteMovies()
                 .collect { favouriteMovies ->
-                    if (favouriteMovies.isEmpty()) {
-                        currentMovies.forEach { remoteMovie -> remoteMovie.isFavourite = false }
-                    } else {
-                        currentMovies.forEach { remoteMovie ->
-                            remoteMovie.isFavourite =
-                                favouriteMovies.find { it.id == remoteMovie.id } != null
-                        }
-                    }
+//                    if (favouriteMovies.isEmpty()) {
+//                        currentMovies.forEach { remoteMovie -> remoteMovie.isFavourite = false }
+//                    } else {
+//                        currentMovies.forEach { remoteMovie ->
+//                            remoteMovie.isFavourite =
+//                                favouriteMovies.find { it.id == remoteMovie.id } != null
+//                        }
+//                    }
                     setState {
                         copy(
                             isLoading = false,

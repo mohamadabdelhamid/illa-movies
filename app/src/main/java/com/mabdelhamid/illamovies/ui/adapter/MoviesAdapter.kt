@@ -7,8 +7,9 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.mabdelhamid.illamovies.R
-import com.mabdelhamid.illamovies.data.model.Movie
+import com.mabdelhamid.illamovies.data.model.MovieDto
 import com.mabdelhamid.illamovies.databinding.ItemMovieBinding
+import com.mabdelhamid.illamovies.domain.entity.Movie
 
 /**
  * Class to adapt the movies list to be displayed in a recyclerview.

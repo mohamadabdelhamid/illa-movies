@@ -21,13 +21,14 @@ object RoomModule {
 
     @Provides
     @Singleton
-    fun provideMoviesDatabase(@ApplicationContext context: Context): MoviesDatabase =
+    fun provideMoviesDatabase(context: Context): MoviesDatabase =
         Room
             .databaseBuilder(
                 context,
                 MoviesDatabase::class.java,
                 "movies-database"
             )
+            .fallbackToDestructiveMigration()
             .build()
 
     @Provides

@@ -1,14 +1,12 @@
 package com.mabdelhamid.illamovies.ui.movies
 
-import android.annotation.SuppressLint
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mabdelhamid.illamovies.base.BaseFragment
-import com.mabdelhamid.illamovies.common.UiAlert
-import com.mabdelhamid.illamovies.data.model.Movie
+import com.mabdelhamid.illamovies.data.model.MovieDto
 import com.mabdelhamid.illamovies.databinding.FragmentMoviesBinding
+import com.mabdelhamid.illamovies.domain.entity.Movie
 import com.mabdelhamid.illamovies.ui.adapter.MoviesAdapter
 import com.mabdelhamid.illamovies.ui.movies.MoviesContract.*
 import com.mabdelhamid.illamovies.ui.movies.MoviesContract.MoviesViewEvent.*

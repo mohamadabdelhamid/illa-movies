@@ -2,7 +2,6 @@ package com.mabdelhamid.illamovies.ui.favourites
 
 import androidx.lifecycle.viewModelScope
 import com.mabdelhamid.illamovies.base.BaseViewModel
-import com.mabdelhamid.illamovies.data.repository.MoviesRepositoryImpl
 import com.mabdelhamid.illamovies.domain.repository.MoviesRepository
 import com.mabdelhamid.illamovies.ui.favourites.FavouritesContract.*
 import com.mabdelhamid.illamovies.ui.favourites.FavouritesContract.FavouritesViewEvent.*

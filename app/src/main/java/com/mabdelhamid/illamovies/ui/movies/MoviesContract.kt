@@ -3,7 +3,7 @@ package com.mabdelhamid.illamovies.ui.movies
 import com.mabdelhamid.illamovies.base.ViewEffect
 import com.mabdelhamid.illamovies.base.ViewEvent
 import com.mabdelhamid.illamovies.base.ViewState
-import com.mabdelhamid.illamovies.data.model.Movie
+import com.mabdelhamid.illamovies.domain.entity.Movie
 
 class MoviesContract {
 

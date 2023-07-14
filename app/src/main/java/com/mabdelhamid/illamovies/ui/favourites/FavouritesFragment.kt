@@ -3,11 +3,11 @@ package com.mabdelhamid.illamovies.ui.favourites
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import com.mabdelhamid.illamovies.base.BaseFragment
-import com.mabdelhamid.illamovies.data.model.Movie
 import com.mabdelhamid.illamovies.databinding.FragmentFavouritesBinding
+import com.mabdelhamid.illamovies.domain.entity.Movie
 import com.mabdelhamid.illamovies.ui.adapter.MoviesAdapter
-import com.mabdelhamid.illamovies.ui.favourites.FavouritesContract.*
-import com.mabdelhamid.illamovies.ui.favourites.FavouritesContract.FavouritesViewEvent.*
+import com.mabdelhamid.illamovies.ui.favourites.FavouritesContract.FavouritesViewEvent.UnFavouriteMovieClicked
+import com.mabdelhamid.illamovies.ui.favourites.FavouritesContract.FavouritesViewState
 import com.mabdelhamid.illamovies.util.extension.collectOnLifecycleStarted
 import dagger.hilt.android.AndroidEntryPoint
 

@@ -1,11 +1,9 @@
 package com.mabdelhamid.illamovies.data.remote
 
 import com.mabdelhamid.illamovies.BuildConfig
-import com.mabdelhamid.illamovies.data.model.BaseResponse
-import com.mabdelhamid.illamovies.data.model.Movie
+import com.mabdelhamid.illamovies.data.model.ResponseWrapper
+import com.mabdelhamid.illamovies.data.model.MovieDto
 import com.mabdelhamid.illamovies.data.remote.Url.All_MOVIES
-import okhttp3.ResponseBody
-import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -21,5 +19,5 @@ interface ApiService {
     suspend fun getAllMovies(
         @Query("page") page: Int,
         @Query("api_key") apiKey: String = BuildConfig.API_KEY
-    ): BaseResponse<Movie>
+    ): ResponseWrapper<MovieDto>
 }

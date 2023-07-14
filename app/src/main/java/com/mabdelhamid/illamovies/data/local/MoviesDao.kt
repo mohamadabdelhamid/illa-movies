@@ -1,7 +1,8 @@
 package com.mabdelhamid.illamovies.data.local
 
 import androidx.room.*
-import com.mabdelhamid.illamovies.data.model.Movie
+import com.mabdelhamid.illamovies.data.model.MovieDto
+import com.mabdelhamid.illamovies.domain.entity.Movie
 import kotlinx.coroutines.flow.Flow
 
 /**
